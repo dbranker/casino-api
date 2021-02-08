@@ -23,6 +23,18 @@ service: casino-api
 provider:
   name: aws
   runtime: dotnetcore3.1
+  iamRoleStatements: # permissions for all of your functions can be set here
+    - Effect: Allow
+      Action: # Gives permission to DynamoDB tables in a specific region
+        - dynamodb:DescribeTable
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: 'arn:aws:dynamodb:us-east-1:*:*'
+
 
 # you can overwrite defaults here
 #  stage: dev
@@ -49,30 +61,38 @@ provider:
 #    variable1: value1
 package:
   individually: true
+  artifact: bin/Release/netcoreapp3.1/hello.zip
 functions:
   hello:
-    handler: CsharpHandlers::AwsDotnetCsharp.Handler::Hello
-    events: 
+    handler: CsharpHandlers::CasinoApi.Handler::Hello
+    events:
       - http:
           path: /test
           method: GET
           cors:
             origin: '*'
-  getEntryByDate:
-    handler: CsharpHandlers::AwsDotnetCsharp.Handler::GetDateEntry
+          authorizer:
+            arn: arn:aws:cognito-idp:us-east-1:295391181070:userpool/us-east-1_kfIgjGclx
+  getCompanies:
+    handler: CsharpHandlers::CasinoApi.Handler::GetCompanies
     events: 
       - http:
-          path: /getEntryByDate
-          method: POST
-          request:
-            parameters:
-              querystrings:
-                CompanyID: true
-              headers:
-                EntryDate: true
+          path: /getcompanies
+          method: GET
           cors:
             origin: '*'
-          
+          authorizer:
+            arn: arn:aws:cognito-idp:us-east-1:295391181070:userpool/us-east-1_kfIgjGclx
+  getCompaniesByEmployee:
+    handler: CsharpHandlers::CasinoApi.Handler::GetCompaniesByEmployee
+    events: 
+      - http:
+          path: /getCompaniesByEmployee
+          method: GET
+          cors:
+            origin: '*'
+          authorizer:
+            arn: arn:aws:cognito-idp:us-east-1:295391181070:userpool/us-east-1_kfIgjGclx
             # headers:
             #   - Content-Type
             #   - X-Amz-Date
@@ -102,8 +122,7 @@ functions:
 #           Ref: 'ApiGatewayRestApi'
 #         StatusCode: '401'
     # you can add packaging information here
-    package:
-      artifact: bin/Release/netcoreapp3.1/hello.zip
+
     #  exclude:
     #    - exclude-me.js
     #    - exclude-me-dir/**
@@ -146,26 +165,26 @@ functions:
 #    Define function environment variables here
 #    environment:
 #      variable2: value2
-resources:
-  Resources:
-    ItemsDynamoDbTable:
-      Type: 'AWS::DynamoDB::Table'
-      DeletionPolicy: Retain
-      Properties:
-        AttributeDefinitions:
-          - AttributeName: CompanyId
-            AttributeType: S
-          - AttributeName: EntryDate
-            AttributeType: S
-        KeySchema:
-          - AttributeName: CompanyId
-            KeyType: HASH
-          - AttributeName: EntryDate
-            KeyType: RANGE
-        ProvisionedThroughput:
-          ReadCapacityUnits: 1
-          WriteCapacityUnits: 1
-        TableName: Company.Values
+# resources:
+#   Resources:
+#     ItemsDynamoDbTable:
+#       Type: 'AWS::DynamoDB::Table'
+#       DeletionPolicy: Retain
+#       Properties:
+#         AttributeDefinitions:
+#           - AttributeName: CompanyId
+#             AttributeType: S
+#           - AttributeName: EntryDate
+#             AttributeType: S
+#         KeySchema:
+#           - AttributeName: CompanyId
+#             KeyType: HASH
+#           - AttributeName: EntryDate
+#             KeyType: RANGE
+#         ProvisionedThroughput:
+#           ReadCapacityUnits: 1
+#           WriteCapacityUnits: 1
+#         TableName: Company.Values
 # you can add CloudFormation resource templates here
 #resources:
 #  Resources:

@@ -93,6 +93,24 @@ functions:
             origin: '*'
           authorizer:
             arn: arn:aws:cognito-idp:us-east-1:295391181070:userpool/us-east-1_kfIgjGclx
+  getEntries:
+    handler: CsharpHandlers::CasinoApi.Handler::GetEntries
+    events: 
+      - http:
+          path: /getEntries
+          method: GET
+          cors:
+            origin: '*'
+            # headers:
+            #   - CompanyID
+            #   - Authorization
+          # request:
+          #   parameters:
+          #     paths:
+          #       CompanyID: true
+              
+          authorizer:
+            arn: arn:aws:cognito-idp:us-east-1:295391181070:userpool/us-east-1_kfIgjGclx
             # headers:
             #   - Content-Type
             #   - X-Amz-Date
